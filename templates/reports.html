@@ -1,0 +1,307 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Page Header & Export Action -->
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+    <div>
+        <h1 class="page-title-main m-0">Workforce Analytics & Reports</h1>
+        <p class="text-secondary fs-8 mt-1 mb-0">High-level organizational intelligence, salary distribution, and department benchmarks.</p>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+        <a href="{% url 'export_csv' %}" class="btn-primary-gradient">
+            <i class="fa-solid fa-file-arrow-down"></i>
+            <span>Export Full CSV Report</span>
+        </a>
+    </div>
+</div>
+
+<!-- Financial & Headcount KPI Summary -->
+<div class="stat-card-grid mb-4">
+    <div class="stat-card card-total">
+        <div class="stat-card-info">
+            <span class="stat-label">Total Workforce</span>
+            <span class="stat-value">{{ report.summary.total_employees }}</span>
+            <span class="stat-subtext text-muted">Across 6 divisions</span>
+        </div>
+        <div class="stat-icon-wrapper total">
+            <i class="fa-solid fa-users"></i>
+        </div>
+    </div>
+
+    <div class="stat-card card-salary">
+        <div class="stat-card-info">
+            <span class="stat-label">Annual Payroll</span>
+            <span class="stat-value text-success">{{ report.payroll.total_annual }}</span>
+            <span class="stat-subtext text-muted">Total run-rate</span>
+        </div>
+        <div class="stat-icon-wrapper salary">
+            <i class="fa-solid fa-money-check-dollar"></i>
+        </div>
+    </div>
+
+    <div class="stat-card card-dept">
+        <div class="stat-card-info">
+            <span class="stat-label">Monthly Payroll</span>
+            <span class="stat-value text-info">{{ report.payroll.monthly_payroll }}</span>
+            <span class="stat-subtext text-muted">Monthly disbursement</span>
+        </div>
+        <div class="stat-icon-wrapper dept">
+            <i class="fa-solid fa-coins"></i>
+        </div>
+    </div>
+
+    <div class="stat-card card-active">
+        <div class="stat-card-info">
+            <span class="stat-label">Average Base</span>
+            <span class="stat-value">{{ report.payroll.average_salary }}</span>
+            <span class="stat-subtext text-muted">Max: {{ report.payroll.highest_salary }}</span>
+        </div>
+        <div class="stat-icon-wrapper active">
+            <i class="fa-solid fa-scale-balanced"></i>
+        </div>
+    </div>
+</div>
+
+<!-- Analytical Charts Grid -->
+<div class="row g-4 mb-4">
+    <!-- Chart 1: Department Headcount & Salary Comparison -->
+    <div class="col-lg-8">
+        <div class="glass-card h-100">
+            <div class="glass-card-header">
+                <h3 class="glass-card-title">
+                    <i class="fa-solid fa-chart-column"></i>
+                    <span>Department Headcount & Average Compensation</span>
+                </h3>
+                <span class="badge bg-primary bg-opacity-25 text-primary border border-primary border-opacity-25 fs-9">Dual-Axis</span>
+            </div>
+            <div class="glass-card-body">
+                <div class="chart-container-rel" style="min-height: 320px;">
+                    <canvas id="deptReportChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart 2: Workforce Status & Diversity -->
+    <div class="col-lg-4">
+        <div class="glass-card h-100">
+            <div class="glass-card-header">
+                <h3 class="glass-card-title">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>Workforce Status</span>
+                </h3>
+            </div>
+            <div class="glass-card-body">
+                <div class="chart-container-rel d-flex align-items-center justify-content-center" style="min-height: 240px;">
+                    <canvas id="reportStatusChart"></canvas>
+                </div>
+
+                <!-- Gender Diversity Breakdown -->
+                <div class="mt-4 pt-3 border-top border-secondary border-opacity-10">
+                    <span class="fs-9 text-uppercase text-muted fw-bold d-block mb-2">Gender Demographics</span>
+                    <div class="d-flex justify-content-between fs-8">
+                        <span class="d-flex align-items-center gap-1.5 text-secondary">
+                            <i class="fa-solid fa-mars text-primary"></i> Male: <strong class="text-white">{{ report.gender_breakdown.Male }}</strong>
+                        </span>
+                        <span class="d-flex align-items-center gap-1.5 text-secondary">
+                            <i class="fa-solid fa-venus text-pink" style="color: #f472b6;"></i> Female: <strong class="text-white">{{ report.gender_breakdown.Female }}</strong>
+                        </span>
+                        <span class="d-flex align-items-center gap-1.5 text-secondary">
+                            <i class="fa-solid fa-genderless text-warning"></i> Other: <strong class="text-white">{{ report.gender_breakdown.Other }}</strong>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Comprehensive Department Breakdown Table -->
+<div class="glass-card mb-4">
+    <div class="glass-card-header">
+        <h3 class="glass-card-title">
+            <i class="fa-solid fa-table-list"></i>
+            <span>Department Breakdown & Financial Allocation</span>
+        </h3>
+        <a href="{% url 'export_csv' %}" class="fs-8 text-primary fw-semibold">
+            <i class="fa-solid fa-download me-1"></i> Download CSV
+        </a>
+    </div>
+    <div class="glass-card-body p-0">
+        <div class="table-responsive-wrapper">
+            <table class="modern-table">
+                <thead>
+                    <tr>
+                        <th>Department</th>
+                        <th>Headcount</th>
+                        <th>Workforce Share</th>
+                        <th>Active</th>
+                        <th>On Leave</th>
+                        <th>Inactive</th>
+                        <th>Average Salary</th>
+                        <th class="text-end">Total Payroll</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for dept in report.departments %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="fa-solid {{ dept.icon }}" style="color: {{ dept.color }};"></i>
+                                <strong class="text-white">{{ dept.name }}</strong>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="fw-bold text-white">{{ dept.employee_count }}</span>
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2" style="min-width: 120px;">
+                                <div class="progress-track flex-grow-1" style="height: 6px;">
+                                    <div class="progress-fill" style="width: {{ dept.percentage }}%; background: {{ dept.color }};"></div>
+                                </div>
+                                <span class="fs-9 text-muted">{{ dept.percentage }}%</span>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge bg-success bg-opacity-20 text-success border border-success border-opacity-25">{{ dept.active_count }}</span>
+                        </td>
+                        <td>
+                            <span class="badge bg-warning bg-opacity-20 text-warning border border-warning border-opacity-25">{{ dept.leave_count }}</span>
+                        </td>
+                        <td>
+                            <span class="badge bg-danger bg-opacity-20 text-danger border border-danger border-opacity-25">{{ dept.inactive_count }}</span>
+                        </td>
+                        <td>
+                            <span class="text-info fw-semibold">{{ dept.average_salary_formatted }}</span>
+                        </td>
+                        <td class="text-end">
+                            <strong class="text-success">{{ dept.total_payroll_formatted }}</strong>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+    const textColor = isDark ? '#94a3b8' : '#475569';
+    const gridColor = isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(0, 0, 0, 0.06)';
+
+    const deptNames = JSON.parse('{{ dept_names_json|escapejs }}');
+    const deptCounts = JSON.parse('{{ dept_counts_json|escapejs }}');
+    const deptSalaries = JSON.parse('{{ dept_salaries_json|escapejs }}');
+    const statusLabels = JSON.parse('{{ status_labels_json|escapejs }}');
+    const statusData = JSON.parse('{{ status_data_json|escapejs }}');
+
+    // Dual-axis Chart (Headcount & Avg Salary)
+    const deptReportCtx = document.getElementById('deptReportChart');
+    if (deptReportCtx) {
+        new Chart(deptReportCtx, {
+            type: 'bar',
+            data: {
+                labels: deptNames,
+                datasets: [
+                    {
+                        type: 'bar',
+                        label: 'Headcount',
+                        data: deptCounts,
+                        backgroundColor: 'rgba(99, 102, 241, 0.75)',
+                        borderColor: '#6366f1',
+                        borderWidth: 1,
+                        borderRadius: 6,
+                        yAxisID: 'y',
+                    },
+                    {
+                        type: 'line',
+                        label: 'Avg Salary ($)',
+                        data: deptSalaries,
+                        borderColor: '#06b6d4',
+                        backgroundColor: 'rgba(6, 182, 212, 0.2)',
+                        borderWidth: 3,
+                        pointBackgroundColor: '#06b6d4',
+                        pointBorderColor: '#ffffff',
+                        pointRadius: 5,
+                        fill: false,
+                        yAxisID: 'y1',
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: { color: textColor, font: { family: 'Plus Jakarta Sans', weight: '600' } }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                        padding: 12,
+                        cornerRadius: 8,
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: textColor }
+                    },
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        grid: { color: gridColor },
+                        ticks: { color: textColor, stepSize: 1 },
+                        title: { display: true, text: 'Employees', color: textColor }
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        grid: { drawOnChartArea: false },
+                        ticks: {
+                            color: '#06b6d4',
+                            callback: function(val) { return '$' + (val / 1000) + 'k'; }
+                        },
+                        title: { display: true, text: 'Avg Salary ($)', color: '#06b6d4' }
+                    }
+                }
+            }
+        });
+    }
+
+    // Status Donut Chart
+    const reportStatusCtx = document.getElementById('reportStatusChart');
+    if (reportStatusCtx) {
+        new Chart(reportStatusCtx, {
+            type: 'doughnut',
+            data: {
+                labels: statusLabels,
+                datasets: [{
+                    data: statusData,
+                    backgroundColor: ['#10b981', '#f59e0b', '#ef4444'],
+                    borderColor: isDark ? '#111827' : '#ffffff',
+                    borderWidth: 3,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '70%',
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { color: textColor, padding: 12, usePointStyle: true }
+                    }
+                }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,375 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Dashboard Welcome Hero Banner -->
+<div class="dashboard-hero">
+    <div class="hero-text">
+        <h1>Good Morning, Admin 👋</h1>
+        <p>Here's what's happening with your workforce today across all departments.</p>
+    </div>
+    <div class="hero-actions">
+        <a href="{% url 'employee_add' %}" class="btn-primary-gradient">
+            <i class="fa-solid fa-user-plus"></i>
+            <span>Add Employee</span>
+        </a>
+        <a href="{% url 'reports' %}" class="btn-secondary-glass">
+            <i class="fa-solid fa-chart-line"></i>
+            <span>View Reports</span>
+        </a>
+        <a href="{% url 'export_csv' %}" class="btn-secondary-glass">
+            <i class="fa-solid fa-file-arrow-down"></i>
+            <span>Export CSV</span>
+        </a>
+    </div>
+</div>
+
+<!-- Primary Statistic Cards Grid -->
+<div class="stat-card-grid">
+    <!-- Total Employees -->
+    <div class="stat-card card-total">
+        <div class="stat-card-info">
+            <span class="stat-label">Total Employees</span>
+            <span class="stat-value">{{ stats.total_employees }}</span>
+            <span class="stat-subtext">
+                <span class="stat-trend"><i class="fa-solid fa-arrow-trend-up"></i> +12%</span> vs last quarter
+            </span>
+        </div>
+        <div class="stat-icon-wrapper total">
+            <i class="fa-solid fa-users"></i>
+        </div>
+    </div>
+
+    <!-- Active Employees -->
+    <div class="stat-card card-active">
+        <div class="stat-card-info">
+            <span class="stat-label">Active</span>
+            <span class="stat-value text-success">{{ stats.active_employees }}</span>
+            <span class="stat-subtext">
+                <span class="stat-trend text-success"><i class="fa-solid fa-circle-check"></i> Active</span> & deployed
+            </span>
+        </div>
+        <div class="stat-icon-wrapper active">
+            <i class="fa-solid fa-user-check"></i>
+        </div>
+    </div>
+
+    <!-- On Leave Employees -->
+    <div class="stat-card card-leave">
+        <div class="stat-card-info">
+            <span class="stat-label">On Leave</span>
+            <span class="stat-value text-warning">{{ stats.on_leave_employees }}</span>
+            <span class="stat-subtext">
+                <span class="stat-trend text-warning"><i class="fa-solid fa-plane-departure"></i> Approved</span> absence
+            </span>
+        </div>
+        <div class="stat-icon-wrapper leave">
+            <i class="fa-solid fa-calendar-check"></i>
+        </div>
+    </div>
+
+    <!-- Inactive Employees -->
+    <div class="stat-card card-inactive">
+        <div class="stat-card-info">
+            <span class="stat-label">Inactive</span>
+            <span class="stat-value text-danger">{{ stats.inactive_employees }}</span>
+            <span class="stat-subtext">
+                <span class="stat-trend text-danger"><i class="fa-solid fa-user-xmark"></i> Inactive</span> records
+            </span>
+        </div>
+        <div class="stat-icon-wrapper inactive">
+            <i class="fa-solid fa-user-slash"></i>
+        </div>
+    </div>
+
+    <!-- Total Departments -->
+    <div class="stat-card card-dept">
+        <div class="stat-card-info">
+            <span class="stat-label">Total Departments</span>
+            <span class="stat-value">{{ stats.total_departments }}</span>
+            <span class="stat-subtext">
+                <span class="text-primary fw-bold"><i class="fa-solid fa-network-wired"></i> Full</span> coverage
+            </span>
+        </div>
+        <div class="stat-icon-wrapper dept">
+            <i class="fa-solid fa-sitemap"></i>
+        </div>
+    </div>
+
+    <!-- Average Salary -->
+    <div class="stat-card card-salary">
+        <div class="stat-card-info">
+            <span class="stat-label">Average Salary</span>
+            <span class="stat-value">{{ stats.average_salary_formatted }}</span>
+            <span class="stat-subtext">
+                <span class="text-info fw-bold"><i class="fa-solid fa-money-bill-wave"></i> Annual</span> base
+            </span>
+        </div>
+        <div class="stat-icon-wrapper salary">
+            <i class="fa-solid fa-dollar-sign"></i>
+        </div>
+    </div>
+</div>
+
+<!-- Dynamic Charts & Department Overview -->
+<div class="charts-grid">
+    <!-- Chart 1: Employees by Department -->
+    <div class="glass-card">
+        <div class="glass-card-header">
+            <h3 class="glass-card-title">
+                <i class="fa-solid fa-chart-column"></i>
+                <span>Employee Distribution by Department</span>
+            </h3>
+            <span class="badge bg-primary bg-opacity-25 text-primary border border-primary border-opacity-25 px-2 py-1">Realtime In-Memory</span>
+        </div>
+        <div class="glass-card-body">
+            <div class="chart-container-rel">
+                <canvas id="deptDistributionChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart 2: Active vs Inactive Donut -->
+    <div class="glass-card">
+        <div class="glass-card-header">
+            <h3 class="glass-card-title">
+                <i class="fa-solid fa-chart-pie"></i>
+                <span>Workforce Status</span>
+            </h3>
+        </div>
+        <div class="glass-card-body">
+            <div class="chart-container-rel d-flex align-items-center justify-content-center">
+                <canvas id="statusDonutChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Department Overview & Recent Employees -->
+<div class="row g-4 mb-4">
+    <!-- Department Overview with Progress Bars -->
+    <div class="col-lg-5">
+        <div class="glass-card h-100">
+            <div class="glass-card-header">
+                <h3 class="glass-card-title">
+                    <i class="fa-solid fa-sitemap"></i>
+                    <span>Department Overview</span>
+                </h3>
+                <a href="{% url 'departments' %}" class="fs-8 text-primary fw-semibold">View All</a>
+            </div>
+            <div class="glass-card-body">
+                {% for dept in departments %}
+                <div class="dept-progress-item">
+                    <div class="dept-progress-header">
+                        <span class="dept-name-tag">
+                            <i class="fa-solid {{ dept.icon }}" style="color: {{ dept.color }};"></i>
+                            <span>{{ dept.name }}</span>
+                        </span>
+                        <span class="dept-count-badge">
+                            {{ dept.employee_count }} member{{ dept.employee_count|pluralize }} ({{ dept.percentage }}%)
+                        </span>
+                    </div>
+                    <div class="progress-track">
+                        <div class="progress-fill" style="width: {{ dept.percentage }}%; background: {{ dept.color }};"></div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Employees Table -->
+    <div class="col-lg-7">
+        <div class="glass-card h-100">
+            <div class="glass-card-header">
+                <h3 class="glass-card-title">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                    <span>Recently Added Employees</span>
+                </h3>
+                <a href="{% url 'employee_list' %}" class="fs-8 text-primary fw-semibold">Browse All</a>
+            </div>
+            <div class="glass-card-body p-0">
+                <div class="table-responsive-wrapper">
+                    <table class="modern-table">
+                        <thead>
+                            <tr>
+                                <th>Employee</th>
+                                <th>Department</th>
+                                <th>Designation</th>
+                                <th>Status</th>
+                                <th class="text-end">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for emp in stats.recent_employees %}
+                            <tr>
+                                <td>
+                                    <div class="employee-cell">
+                                        <div class="avatar-circle" style="background: {{ emp.avatar_gradient }};">
+                                            {{ emp.initials }}
+                                        </div>
+                                        <div class="employee-meta">
+                                            <a href="{% url 'employee_detail' emp.id %}" class="employee-name">{{ emp.full_name }}</a>
+                                            <span class="employee-email">{{ emp.email }}</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="dept-badge">
+                                        <i class="fa-solid fa-briefcase"></i>
+                                        {{ emp.department }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="text-secondary fs-8 fw-semibold">{{ emp.designation }}</span>
+                                </td>
+                                <td>
+                                    {% if emp.status == "Active" %}
+                                        <span class="status-badge active"><span class="status-dot"></span> Active</span>
+                                    {% elif emp.status == "On Leave" %}
+                                        <span class="status-badge on-leave"><span class="status-dot"></span> On Leave</span>
+                                    {% else %}
+                                        <span class="status-badge inactive"><span class="status-dot"></span> Inactive</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end">
+                                    <div class="d-inline-flex gap-1">
+                                        <a href="{% url 'employee_detail' emp.id %}" class="btn-icon-action view" title="View Profile">
+                                            <i class="fa-regular fa-eye"></i>
+                                        </a>
+                                        <a href="{% url 'employee_edit' emp.id %}" class="btn-icon-action edit" title="Edit Employee">
+                                            <i class="fa-regular fa-pen-to-square"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center py-4 text-muted">
+                                    No recent employees found.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+    const textColor = isDark ? '#94a3b8' : '#475569';
+    const gridColor = isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(0, 0, 0, 0.06)';
+
+    // Parse Data from Django Context
+    const deptLabels = JSON.parse('{{ dept_labels_json|escapejs }}');
+    const deptData = JSON.parse('{{ dept_data_json|escapejs }}');
+    const statusLabels = JSON.parse('{{ status_labels_json|escapejs }}');
+    const statusData = JSON.parse('{{ status_data_json|escapejs }}');
+
+    // 1. Department Distribution Bar Chart
+    const deptCtx = document.getElementById('deptDistributionChart');
+    if (deptCtx) {
+        new Chart(deptCtx, {
+            type: 'bar',
+            data: {
+                labels: deptLabels,
+                datasets: [{
+                    label: 'Employees',
+                    data: deptData,
+                    backgroundColor: [
+                        'rgba(56, 189, 248, 0.85)',
+                        'rgba(244, 114, 182, 0.85)',
+                        'rgba(52, 211, 153, 0.85)',
+                        'rgba(251, 191, 36, 0.85)',
+                        'rgba(129, 140, 248, 0.85)',
+                        'rgba(167, 139, 250, 0.85)'
+                    ],
+                    borderColor: [
+                        '#38bdf8', '#f472b6', '#34d399', '#fbbf24', '#818cf8', '#a78bfa'
+                    ],
+                    borderWidth: 1,
+                    borderRadius: 8,
+                    borderSkipped: false,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                        titleColor: '#f8fafc',
+                        bodyColor: '#e2e8f0',
+                        borderColor: 'rgba(255, 255, 255, 0.1)',
+                        borderWidth: 1,
+                        padding: 12,
+                        cornerRadius: 8,
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: textColor, font: { family: 'Plus Jakarta Sans', weight: '600' } }
+                    },
+                    y: {
+                        grid: { color: gridColor },
+                        ticks: { stepSize: 1, color: textColor },
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    }
+
+    // 2. Active vs Inactive Donut Chart
+    const statusCtx = document.getElementById('statusDonutChart');
+    if (statusCtx) {
+        new Chart(statusCtx, {
+            type: 'doughnut',
+            data: {
+                labels: statusLabels,
+                datasets: [{
+                    data: statusData,
+                    backgroundColor: [
+                        '#10b981', // Active - emerald
+                        '#f59e0b', // On Leave - amber
+                        '#ef4444'  // Inactive - red
+                    ],
+                    borderColor: isDark ? '#111827' : '#ffffff',
+                    borderWidth: 3,
+                    hoverOffset: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '72%',
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            color: textColor,
+                            padding: 18,
+                            usePointStyle: true,
+                            pointStyle: 'circle',
+                            font: { family: 'Plus Jakarta Sans', weight: '600' }
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                        padding: 12,
+                        cornerRadius: 8,
+                    }
+                }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

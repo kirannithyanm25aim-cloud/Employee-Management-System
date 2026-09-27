@@ -1,0 +1,263 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Page Header & Action Bar -->
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+    <div>
+        <div class="d-flex align-items-center gap-2">
+            <h1 class="page-title-main m-0">Employees Directory</h1>
+            <span class="badge bg-primary rounded-pill px-2.5 py-1 fs-8" id="visibleEmployeeCount">{{ total_count }}</span>
+        </div>
+        <p class="text-secondary fs-8 mt-1 mb-0">Manage and monitor workforce records, departments, and employment status in real time.</p>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+        <a href="{% url 'export_csv' %}" class="btn-secondary-glass" title="Download CSV">
+            <i class="fa-solid fa-file-arrow-down"></i>
+            <span>Export CSV</span>
+        </a>
+        <a href="{% url 'employee_add' %}" class="btn-primary-gradient">
+            <i class="fa-solid fa-user-plus"></i>
+            <span>Add Employee</span>
+        </a>
+    </div>
+</div>
+
+<!-- Dynamic Search & Filter Toolbar -->
+<div class="filter-toolbar">
+    <div class="filter-left-group">
+        <!-- Live Instant Search Input -->
+        <div class="search-input-group">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="employeeSearchInput" placeholder="Search by name, ID, email, role..." value="{{ search_query }}">
+        </div>
+
+        <!-- Filter: Department -->
+        <select class="filter-select" id="deptFilterSelect" aria-label="Filter by Department">
+            <option value="all" {% if selected_department == "all" %}selected{% endif %}>All Departments</option>
+            {% for d in departments %}
+            <option value="{{ d }}" {% if selected_department == d %}selected{% endif %}>{{ d }}</option>
+            {% endfor %}
+        </select>
+
+        <!-- Filter: Status -->
+        <select class="filter-select" id="statusFilterSelect" aria-label="Filter by Status">
+            <option value="all" {% if selected_status == "all" %}selected{% endif %}>All Statuses</option>
+            <option value="Active" {% if selected_status == "Active" %}selected{% endif %}>Active</option>
+            <option value="On Leave" {% if selected_status == "On Leave" %}selected{% endif %}>On Leave</option>
+            <option value="Inactive" {% if selected_status == "Inactive" %}selected{% endif %}>Inactive</option>
+        </select>
+
+        <!-- Filter: Gender -->
+        <select class="filter-select" id="genderFilterSelect" aria-label="Filter by Gender">
+            <option value="all" {% if selected_gender == "all" %}selected{% endif %}>All Genders</option>
+            <option value="Male" {% if selected_gender == "Male" %}selected{% endif %}>Male</option>
+            <option value="Female" {% if selected_gender == "Female" %}selected{% endif %}>Female</option>
+            <option value="Other" {% if selected_gender == "Other" %}selected{% endif %}>Other</option>
+        </select>
+
+        <!-- Reset Button -->
+        <button type="button" class="btn btn-secondary-glass py-2 px-3 fs-8" id="resetFiltersBtn" title="Reset all filters">
+            <i class="fa-solid fa-rotate-left me-1"></i> Reset
+        </button>
+    </div>
+
+    <div class="d-flex align-items-center gap-2">
+        <!-- Sort Options -->
+        <select class="filter-select" id="sortSelect" aria-label="Sort Employees">
+            <option value="name_asc" {% if selected_sort == "name_asc" %}selected{% endif %}>Sort: Name (A-Z)</option>
+            <option value="name_desc" {% if selected_sort == "name_desc" %}selected{% endif %}>Sort: Name (Z-A)</option>
+            <option value="salary_desc" {% if selected_sort == "salary_desc" %}selected{% endif %}>Sort: Salary (High to Low)</option>
+            <option value="salary_asc" {% if selected_sort == "salary_asc" %}selected{% endif %}>Sort: Salary (Low to High)</option>
+            <option value="date_desc" {% if selected_sort == "date_desc" %}selected{% endif %}>Sort: Joining Date (Newest)</option>
+            <option value="date_asc" {% if selected_sort == "date_asc" %}selected{% endif %}>Sort: Joining Date (Oldest)</option>
+            <option value="department" {% if selected_sort == "department" %}selected{% endif %}>Sort: Department</option>
+        </select>
+
+        <!-- Layout View Toggle (Table / Grid) -->
+        <div class="view-toggle-group">
+            <button type="button" class="view-toggle-btn active" id="viewTableBtn" title="Table View" aria-label="Table View">
+                <i class="fa-solid fa-list"></i>
+            </button>
+            <button type="button" class="view-toggle-btn" id="viewGridBtn" title="Grid Cards View" aria-label="Grid View">
+                <i class="fa-solid fa-grip"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- 1. Table View Container -->
+<div class="glass-card mb-4" id="employeeTableContainer">
+    <div class="table-responsive-wrapper">
+        <table class="modern-table">
+            <thead>
+                <tr>
+                    <th>Avatar</th>
+                    <th>Employee</th>
+                    <th>Employee ID</th>
+                    <th>Department</th>
+                    <th>Designation</th>
+                    <th>Salary</th>
+                    <th>Status</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="employeeTableBody">
+                {% for emp in employees %}
+                <tr class="employee-table-row" 
+                    data-id="{{ emp.id }}"
+                    data-name="{{ emp.full_name }}"
+                    data-department="{{ emp.department }}"
+                    data-status="{{ emp.status }}"
+                    data-gender="{{ emp.gender }}"
+                    data-search-text="{{ emp.id }} {{ emp.full_name }} {{ emp.email }} {{ emp.department }} {{ emp.designation }}">
+                    <td>
+                        <div class="avatar-circle" style="background: {{ emp.avatar_gradient }};">
+                            {{ emp.initials }}
+                        </div>
+                    </td>
+                    <td>
+                        <div class="employee-meta">
+                            <a href="{% url 'employee_detail' emp.id %}" class="employee-name">{{ emp.full_name }}</a>
+                            <span class="employee-email">{{ emp.email }}</span>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="employee-id-pill">{{ emp.id }}</span>
+                    </td>
+                    <td>
+                        <span class="dept-badge">
+                            <i class="fa-solid fa-briefcase"></i>
+                            {{ emp.department }}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="text-secondary fw-semibold">{{ emp.designation }}</span>
+                    </td>
+                    <td>
+                        <span class="salary-text">{{ emp.salary_formatted }}</span>
+                    </td>
+                    <td>
+                        {% if emp.status == "Active" %}
+                            <span class="status-badge active"><span class="status-dot"></span> Active</span>
+                        {% elif emp.status == "On Leave" %}
+                            <span class="status-badge on-leave"><span class="status-dot"></span> On Leave</span>
+                        {% else %}
+                            <span class="status-badge inactive"><span class="status-dot"></span> Inactive</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-end">
+                        <div class="d-inline-flex gap-1">
+                            <a href="{% url 'employee_detail' emp.id %}" class="btn-icon-action view" title="View Profile">
+                                <i class="fa-regular fa-eye"></i>
+                            </a>
+                            <a href="{% url 'employee_edit' emp.id %}" class="btn-icon-action edit" title="Edit Employee">
+                                <i class="fa-regular fa-pen-to-square"></i>
+                            </a>
+                            <button type="button" class="btn-icon-action delete btn-trigger-delete" 
+                                    data-id="{{ emp.id }}" 
+                                    data-name="{{ emp.full_name }}" 
+                                    data-url="{% url 'employee_delete' emp.id %}" 
+                                    title="Delete Employee">
+                                <i class="fa-regular fa-trash-can"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- 2. Grid Cards View Container -->
+<div class="employee-grid mb-4" id="employeeGridContainer" style="display: none;">
+    {% for emp in employees %}
+    <div class="employee-card employee-grid-card"
+         data-id="{{ emp.id }}"
+         data-name="{{ emp.full_name }}"
+         data-department="{{ emp.department }}"
+         data-status="{{ emp.status }}"
+         data-gender="{{ emp.gender }}"
+         data-search-text="{{ emp.id }} {{ emp.full_name }} {{ emp.email }} {{ emp.department }} {{ emp.designation }}">
+        <div class="employee-card-top">
+            <div class="avatar-circle lg" style="background: {{ emp.avatar_gradient }};">
+                {{ emp.initials }}
+            </div>
+            <div class="d-flex flex-column align-items-end gap-1">
+                {% if emp.status == "Active" %}
+                    <span class="status-badge active"><span class="status-dot"></span> Active</span>
+                {% elif emp.status == "On Leave" %}
+                    <span class="status-badge on-leave"><span class="status-dot"></span> On Leave</span>
+                {% else %}
+                    <span class="status-badge inactive"><span class="status-dot"></span> Inactive</span>
+                {% endif %}
+                <span class="employee-id-pill mt-1">{{ emp.id }}</span>
+            </div>
+        </div>
+
+        <div class="employee-card-body">
+            <a href="{% url 'employee_detail' emp.id %}" class="employee-card-name">{{ emp.full_name }}</a>
+            <div class="employee-card-role">{{ emp.designation }}</div>
+
+            <div class="employee-card-details">
+                <div class="detail-row">
+                    <i class="fa-solid fa-briefcase"></i>
+                    <span>{{ emp.department }}</span>
+                </div>
+                <div class="detail-row">
+                    <i class="fa-solid fa-envelope"></i>
+                    <span class="text-truncate">{{ emp.email }}</span>
+                </div>
+                <div class="detail-row">
+                    <i class="fa-solid fa-phone"></i>
+                    <span>{{ emp.phone }}</span>
+                </div>
+                <div class="detail-row">
+                    <i class="fa-solid fa-calendar-days"></i>
+                    <span>Joined {{ emp.joining_date }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="employee-card-footer">
+            <div>
+                <span class="text-muted fs-8 d-block">Annual Salary</span>
+                <span class="salary-text">{{ emp.salary_formatted }}</span>
+            </div>
+            <div class="d-flex gap-1">
+                <a href="{% url 'employee_detail' emp.id %}" class="btn-icon-action view" title="View Profile">
+                    <i class="fa-regular fa-eye"></i>
+                </a>
+                <a href="{% url 'employee_edit' emp.id %}" class="btn-icon-action edit" title="Edit Employee">
+                    <i class="fa-regular fa-pen-to-square"></i>
+                </a>
+                <button type="button" class="btn-icon-action delete btn-trigger-delete" 
+                        data-id="{{ emp.id }}" 
+                        data-name="{{ emp.full_name }}" 
+                        data-url="{% url 'employee_delete' emp.id %}" 
+                        title="Delete Employee">
+                    <i class="fa-regular fa-trash-can"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- 3. Empty State -->
+<div class="glass-card empty-state" id="employeeEmptyState" {% if employees %}style="display: none;"{% endif %}>
+    <div class="empty-state-icon">
+        <i class="fa-solid fa-user-slash"></i>
+    </div>
+    <h3>No Employees Found</h3>
+    <p>We couldn't find any employees matching your search query or filter criteria. Try adjusting your filters or add a new employee.</p>
+    <div class="d-flex justify-content-center gap-2">
+        <a href="{% url 'employee_list' %}" class="btn-secondary-glass">
+            <i class="fa-solid fa-filter-circle-xmark"></i> Clear Filters
+        </a>
+        <a href="{% url 'employee_add' %}" class="btn-primary-gradient">
+            <i class="fa-solid fa-user-plus"></i> Add Employee
+        </a>
+    </div>
+</div>
+{% endblock %}

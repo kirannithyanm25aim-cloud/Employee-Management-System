@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+    <div>
+        <h1 class="page-title-main m-0">System & User Settings</h1>
+        <p class="text-secondary fs-8 mt-1 mb-0">Manage appearance themes, notification preferences, admin profile, and data controls.</p>
+    </div>
+    <div>
+        <button type="button" class="btn-primary-gradient" id="saveSettingsBtn">
+            <i class="fa-solid fa-floppy-disk"></i>
+            <span>Save Preferences</span>
+        </button>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <!-- Left Column: Appearance & Notifications -->
+    <div class="col-lg-6">
+        <!-- 1. Appearance / Theme Card -->
+        <div class="glass-card mb-4">
+            <div class="glass-card-header">
+                <h3 class="glass-card-title">
+                    <i class="fa-solid fa-palette text-info"></i>
+                    <span>Appearance & Theme</span>
+                </h3>
+                <span class="badge bg-primary bg-opacity-20 text-primary border border-primary border-opacity-25 fs-9">Real-time</span>
+            </div>
+            <div class="glass-card-body">
+                <p class="fs-8 text-secondary mb-3">Choose the interface visual style. Preferences persist in your browser session.</p>
+
+                <div class="row g-3">
+                    <!-- Dark Mode Option -->
+                    <div class="col-6">
+                        <label class="d-block cursor-pointer">
+                            <input type="radio" name="appTheme" id="themeDarkRadio" class="d-none" value="dark">
+                            <div class="p-3 rounded-3 border border-secondary border-opacity-25 text-center transition-all h-100 theme-card-select" style="background: rgba(15, 23, 42, 0.8);">
+                                <i class="fa-solid fa-moon fs-3 text-primary mb-2 d-block"></i>
+                                <span class="fw-bold fs-8 text-white d-block">Dark Navy</span>
+                                <span class="fs-9 text-muted">SaaS Modern Style</span>
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- Light Mode Option -->
+                    <div class="col-6">
+                        <label class="d-block cursor-pointer">
+                            <input type="radio" name="appTheme" id="themeLightRadio" class="d-none" value="light">
+                            <div class="p-3 rounded-3 border border-secondary border-opacity-25 text-center transition-all h-100 theme-card-select" style="background: rgba(248, 250, 252, 0.15);">
+                                <i class="fa-solid fa-sun fs-3 text-warning mb-2 d-block"></i>
+                                <span class="fw-bold fs-8 text-white d-block">Clean Light</span>
+                                <span class="fs-9 text-muted">High Contrast</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Notifications Card -->
+        <div class="glass-card">
+            <div class="glass-card-header">
+                <h3 class="glass-card-title">
+                    <i class="fa-regular fa-bell text-warning"></i>
+                    <span>Notification Alerts</span>
+                </h3>
+            </div>
+            <div class="glass-card-body">
+                <div class="d-flex flex-column gap-3">
+                    <div class="d-flex align-items-center justify-content-between p-2 rounded-2 bg-dark bg-opacity-30 border border-secondary border-opacity-10">
+                        <div>
+                            <span class="fw-bold fs-8 text-white d-block">Email Notifications</span>
+                            <span class="fs-9 text-muted">Receive email digests when staff join or depart</span>
+                        </div>
+                        <div class="form-check form-switch fs-5 m-0">
+                            <input class="form-check-input cursor-pointer" type="checkbox" id="settingsEmailNotif" checked>
+                        </div>
+                    </div>
+
+                    <div class="d-flex align-items-center justify-content-between p-2 rounded-2 bg-dark bg-opacity-30 border border-secondary border-opacity-10">
+                        <div>
+                            <span class="fw-bold fs-8 text-white d-block">Employee Status Updates</span>
+                            <span class="fs-9 text-muted">Instant alerts when an employee goes on leave or updates role</span>
+                        </div>
+                        <div class="form-check form-switch fs-5 m-0">
+                            <input class="form-check-input cursor-pointer" type="checkbox" id="settingsUpdatesNotif" checked>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Profile & Data Architecture -->
+    <div class="col-lg-6">
+        <!-- 3. Profile Card -->
+        <div class="glass-card mb-4">
+            <div class="glass-card-header">
+                <h3 class="glass-card-title">
+                    <i class="fa-regular fa-user text-primary"></i>
+                    <span>Administrator Profile</span>
+                </h3>
+            </div>
+            <div class="glass-card-body">
+                <div class="mb-3">
+                    <label for="settingsAdminName" class="form-label">Administrator Name</label>
+                    <input type="text" class="form-control-modern" id="settingsAdminName" placeholder="Admin User" value="Admin User">
+                </div>
+                <div class="mb-3">
+                    <label for="settingsAdminEmail" class="form-label">Administrator Email</label>
+                    <input type="email" class="form-control-modern" id="settingsAdminEmail" placeholder="admin@employeehub.io" value="admin@employeehub.io">
+                </div>
+                <div>
+                    <label class="form-label">Role Privilege</label>
+                    <input type="text" class="form-control-modern" value="Super Administrator (Full In-Memory CRUD)" disabled>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. Zero Database Architecture Diagnostics -->
+        <div class="glass-card">
+            <div class="glass-card-header">
+                <h3 class="glass-card-title">
+                    <i class="fa-solid fa-server text-success"></i>
+                    <span>Runtime Architecture</span>
+                </h3>
+                <span class="badge bg-success bg-opacity-20 text-success border border-success border-opacity-25 fs-9">Zero-DB Active</span>
+            </div>
+            <div class="glass-card-body">
+                <p class="fs-8 text-secondary mb-3">
+                    This instance runs entirely on a Python in-memory service without SQLite, MySQL, or ORM models.
+                </p>
+
+                <div class="p-3 rounded-3 bg-dark bg-opacity-40 border border-secondary border-opacity-15 mb-3 fs-8">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Data Engine:</span>
+                        <strong class="text-info">Python Service (`employees/services.py`)</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Active In-Memory Employees:</span>
+                        <strong class="text-white">{{ total_employees }} Records</strong>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted">Session Storage:</span>
+                        <strong class="text-white">Django Signed Cookies (Stateless)</strong>
+                    </div>
+                </div>
+
+                <form method="POST" action="{% url 'settings' %}" onsubmit="return confirm('Restore original 14 realistic sample employees? Current modifications will be reset.');">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="reset_sample_data">
+                    <button type="submit" class="btn btn-secondary-glass w-100 justify-content-center text-warning border-warning border-opacity-25">
+                        <i class="fa-solid fa-arrow-rotate-left me-1"></i>
+                        <span>Reset to Initial Sample Data (14 Records)</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

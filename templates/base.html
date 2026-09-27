@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Employee Hub - Smart Employee Management System. A modern SaaS application for managing workforce, departments, analytics, and payroll.">
+    <meta name="author" content="Employee Hub">
+    <title>{% if page_title %}{{ page_title }} | {% endif %}Employee Hub</title>
+
+    <!-- Google Fonts: Plus Jakarta Sans & Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+    <!-- Bootstrap 5.3 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+
+    <!-- Font Awesome 6.5.1 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <!-- Chart.js 4.4.1 -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/static/css/style.css">
+
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <div class="app-container">
+        <!-- Mobile Sidebar Backdrop Overlay -->
+        <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+        <!-- Left Sidebar Navigation -->
+        <aside class="app-sidebar">
+            <!-- Sidebar Header & Logo -->
+            <div class="sidebar-header">
+                <a href="{% url 'dashboard' %}" class="brand-wrapper">
+                    <div class="brand-icon-box">
+                        <i class="fa-solid fa-shapes"></i>
+                    </div>
+                    <div class="brand-info">
+                        <span class="brand-title">
+                            EMPLOYEE HUB
+                            <span class="badge-pro">PRO</span>
+                        </span>
+                        <span class="brand-subtitle">Smart Employee Management</span>
+                    </div>
+                </a>
+            </div>
+
+            <!-- Navigation Links -->
+            <nav class="sidebar-nav">
+                <span class="nav-section-title">Main Menu</span>
+
+                <a href="{% url 'dashboard' %}" class="nav-link {% if active_nav == 'dashboard' %}active{% endif %}">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>Dashboard</span>
+                </a>
+
+                <a href="{% url 'employee_list' %}" class="nav-link {% if active_nav == 'employees' %}active{% endif %}">
+                    <i class="fa-solid fa-users"></i>
+                    <span>Employees</span>
+                </a>
+
+                <a href="{% url 'employee_add' %}" class="nav-link {% if active_nav == 'employee_add' %}active{% endif %}">
+                    <i class="fa-solid fa-user-plus"></i>
+                    <span>Add Employee</span>
+                </a>
+
+                <a href="{% url 'departments' %}" class="nav-link {% if active_nav == 'departments' %}active{% endif %}">
+                    <i class="fa-solid fa-sitemap"></i>
+                    <span>Departments</span>
+                </a>
+
+                <span class="nav-section-title">Analytics & Tools</span>
+
+                <a href="{% url 'reports' %}" class="nav-link {% if active_nav == 'reports' %}active{% endif %}">
+                    <i class="fa-solid fa-chart-line"></i>
+                    <span>Reports</span>
+                </a>
+
+                <a href="{% url 'export_csv' %}" class="nav-link">
+                    <i class="fa-solid fa-file-arrow-down"></i>
+                    <span>Export CSV</span>
+                </a>
+
+                <a href="{% url 'settings' %}" class="nav-link {% if active_nav == 'settings' %}active{% endif %}">
+                    <i class="fa-solid fa-sliders"></i>
+                    <span>Settings</span>
+                </a>
+            </nav>
+
+            <!-- Sidebar Bottom User Profile -->
+            <div class="sidebar-footer">
+                <div class="user-profile-widget">
+                    <div class="admin-avatar">
+                        <span>AD</span>
+                        <span class="online-indicator"></span>
+                    </div>
+                    <div class="user-info">
+                        <span class="user-name display-admin-name">Admin User</span>
+                        <span class="user-role">Administrator</span>
+                    </div>
+                    <a href="{% url 'settings' %}" class="btn-sidebar-logout" title="Settings">
+                        <i class="fa-solid fa-gear"></i>
+                    </a>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Workspace Area -->
+        <div class="app-main">
+            <!-- Top Navigation Bar -->
+            <header class="app-topbar">
+                <div class="topbar-left">
+                    <button type="button" class="btn-mobile-toggle" id="mobileToggleBtn" aria-label="Toggle navigation">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <div class="page-breadcrumb">
+                        <h2 class="page-title-main m-0">{{ page_title|default:"Dashboard" }}</h2>
+                        <span class="page-subtitle-small">Employee Hub Workspace</span>
+                    </div>
+                </div>
+
+                <div class="topbar-right">
+                    <!-- Global Search Quick Filter -->
+                    <div class="topbar-search">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="topbarGlobalSearch" placeholder="Quick search employees..." autocomplete="off">
+                    </div>
+
+                    <!-- Theme Toggle (Dark/Light) -->
+                    <button type="button" class="topbar-btn theme-toggle-btn" title="Toggle Theme" aria-label="Toggle theme">
+                        <i class="fa-solid fa-sun theme-toggle-icon"></i>
+                    </button>
+
+                    <!-- Notifications Dropdown -->
+                    <div class="dropdown">
+                        <button type="button" class="topbar-btn" id="notifDropdown" data-bs-toggle="dropdown" aria-expanded="false" title="Notifications">
+                            <i class="fa-regular fa-bell"></i>
+                            <span class="notification-badge"></span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end modal-content-glass p-2 shadow-lg" aria-labelledby="notifDropdown" style="width: 320px;">
+                            <li class="px-3 py-2 border-bottom border-secondary border-opacity-25 d-flex justify-content-between align-items-center">
+                                <span class="fw-bold fs-7">Notifications</span>
+                                <span class="badge bg-primary rounded-pill">3 New</span>
+                            </li>
+                            <li>
+                                <a class="dropdown-item py-2 rounded-2 mt-1" href="{% url 'employee_list' %}">
+                                    <div class="d-flex gap-2">
+                                        <i class="fa-solid fa-user-plus text-info mt-1"></i>
+                                        <div>
+                                            <div class="fw-semibold fs-8">New Employee Added</div>
+                                            <div class="text-muted fs-9">Ananya Deshmukh joined IT Dept</div>
+                                        </div>
+                                    </div>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item py-2 rounded-2" href="{% url 'reports' %}">
+                                    <div class="d-flex gap-2">
+                                        <i class="fa-solid fa-chart-pie text-warning mt-1"></i>
+                                        <div>
+                                            <div class="fw-semibold fs-8">Payroll Analytics Ready</div>
+                                            <div class="text-muted fs-9">Monthly summary generated</div>
+                                        </div>
+                                    </div>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item py-2 rounded-2" href="{% url 'departments' %}">
+                                    <div class="d-flex gap-2">
+                                        <i class="fa-solid fa-sitemap text-success mt-1"></i>
+                                        <div>
+                                            <div class="fw-semibold fs-8">6 Active Departments</div>
+                                            <div class="text-muted fs-9">All departments balanced</div>
+                                        </div>
+                                    </div>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Add Quick Button -->
+                    <a href="{% url 'employee_add' %}" class="btn-primary-gradient d-none d-md-inline-flex">
+                        <i class="fa-solid fa-plus"></i>
+                        <span>New Employee</span>
+                    </a>
+                </div>
+            </header>
+
+            <!-- Main Content Container -->
+            <main class="content-body">
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+
+    <!-- Global Delete Confirmation Modal -->
+    <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content modal-content-glass">
+                <div class="modal-header-glass">
+                    <h5 class="modal-title d-flex align-items-center gap-2 text-danger" id="deleteModalLabel">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        <span>Confirm Deletion</span>
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body-glass">
+                    <p class="mb-2">Are you sure you want to permanently remove employee <strong id="deleteEmployeeName" class="text-white"></strong>?</p>
+                    <div class="p-3 rounded-3 bg-danger bg-opacity-10 border border-danger border-opacity-25 fs-8 text-secondary">
+                        <i class="fa-solid fa-circle-info text-danger me-1"></i>
+                        Employee ID: <span id="deleteEmployeeId" class="fw-bold text-white"></span>. This action will delete the employee from active memory during runtime.
+                    </div>
+                </div>
+                <div class="modal-footer-glass">
+                    <button type="button" class="btn btn-secondary-glass" data-bs-dismiss="modal">Cancel</button>
+                    <form id="deleteEmployeeForm" method="POST" action="">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger px-4">
+                            <i class="fa-solid fa-trash me-1"></i> Delete Employee
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Toast Notifications Container -->
+    <div class="toast-container-custom"></div>
+
+    <!-- Hidden Django Flash Messages Receiver -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="django-flash-message d-none" data-message="{{ message }}" data-tag="{{ message.tags }}"></div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Bootstrap 5.3 Bundle JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+
+    <!-- Custom Client Logic -->
+    <script src="/static/js/app.js"></script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

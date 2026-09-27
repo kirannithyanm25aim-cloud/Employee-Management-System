@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+    <div>
+        <h1 class="page-title-main m-0">Departments Overview</h1>
+        <p class="text-secondary fs-8 mt-1 mb-0">Workforce distribution, payroll metrics, and operational headcount across all organizational divisions.</p>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+        <a href="{% url 'employee_add' %}" class="btn-primary-gradient">
+            <i class="fa-solid fa-user-plus"></i>
+            <span>Add to Department</span>
+        </a>
+    </div>
+</div>
+
+<!-- Department Cards Grid -->
+<div class="departments-grid mb-4">
+    {% for dept in departments %}
+    <div class="department-card">
+        <!-- Top Row: Icon & Count -->
+        <div class="dept-card-top">
+            <div class="dept-icon-box" style="background: {{ dept.bg_color }}; color: {{ dept.color }};">
+                <i class="fa-solid {{ dept.icon }}"></i>
+            </div>
+            <div class="text-end">
+                <span class="fs-9 text-uppercase text-muted fw-bold d-block">Headcount</span>
+                <span class="fs-3 fw-bolder text-white">{{ dept.employee_count }}</span>
+            </div>
+        </div>
+
+        <!-- Name & Description -->
+        <h3 class="fs-5 fw-bold text-white mb-1">{{ dept.name }}</h3>
+        <p class="fs-8 text-secondary mb-3 flex-grow-1">{{ dept.description }}</p>
+
+        <!-- Status Breakdown Tags -->
+        <div class="d-flex flex-wrap gap-1.5 mb-3">
+            <span class="badge bg-success bg-opacity-20 text-success border border-success border-opacity-25 fs-9">
+                <i class="fa-solid fa-circle-check me-1"></i> {{ dept.active_count }} Active
+            </span>
+            {% if dept.leave_count > 0 %}
+            <span class="badge bg-warning bg-opacity-20 text-warning border border-warning border-opacity-25 fs-9">
+                <i class="fa-solid fa-calendar-check me-1"></i> {{ dept.leave_count }} On Leave
+            </span>
+            {% endif %}
+            {% if dept.inactive_count > 0 %}
+            <span class="badge bg-danger bg-opacity-20 text-danger border border-danger border-opacity-25 fs-9">
+                <i class="fa-solid fa-user-xmark me-1"></i> {{ dept.inactive_count }} Inactive
+            </span>
+            {% endif %}
+        </div>
+
+        <!-- Department Financials -->
+        <div class="dept-metrics-row">
+            <div class="metric-item-small">
+                <span class="metric-label">Avg. Salary</span>
+                <span class="metric-number text-info fs-6">{{ dept.average_salary_formatted }}</span>
+            </div>
+            <div class="metric-item-small">
+                <span class="metric-label">Total Payroll</span>
+                <span class="metric-number text-success fs-6">{{ dept.total_payroll_formatted }}</span>
+            </div>
+        </div>
+
+        <!-- Progress Indicator (% of Workforce) -->
+        <div class="mb-3">
+            <div class="d-flex justify-content-between fs-9 text-muted mb-1">
+                <span>Share of Company</span>
+                <strong class="text-white">{{ dept.percentage }}%</strong>
+            </div>
+            <div class="progress-track">
+                <div class="progress-fill" style="width: {{ dept.percentage }}%; background: {{ dept.color }};"></div>
+            </div>
+        </div>
+
+        <!-- Card Footer Action -->
+        <div class="pt-2">
+            <a href="{% url 'employee_list' %}?department={{ dept.name }}" class="btn btn-secondary-glass w-100 justify-content-center">
+                <span>View {{ dept.name }} Team ({{ dept.employee_count }})</span>
+                <i class="fa-solid fa-arrow-right ms-1"></i>
+            </a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

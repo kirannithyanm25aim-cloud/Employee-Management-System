@@ -1,0 +1,265 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Breadcrumb Header -->
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <div class="d-flex align-items-center gap-2">
+        <a href="{% url 'employee_list' %}" class="btn btn-secondary-glass py-2 px-3 fs-8">
+            <i class="fa-solid fa-arrow-left me-1"></i> Back to Directory
+        </a>
+        <span class="text-muted">/</span>
+        <span class="text-secondary fs-8 fw-semibold">
+            {% if is_edit %}Edit Employee Details{% else %}Add New Employee{% endif %}
+        </span>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <!-- Left Column: Form -->
+    <div class="col-lg-8">
+        <div class="glass-card">
+            <div class="glass-card-header">
+                <h3 class="glass-card-title">
+                    <i class="fa-solid {% if is_edit %}fa-user-pen{% else %}fa-user-plus{% endif %}"></i>
+                    <span>{% if is_edit %}Edit Employee Information{% else %}Create New Employee Profile{% endif %}</span>
+                </h3>
+                <span class="fs-8 text-muted">* Required fields</span>
+            </div>
+
+            <div class="glass-card-body">
+                <form method="POST" action="" novalidate id="employeeForm">
+                    {% csrf_token %}
+
+                    <!-- Section: Personal Information -->
+                    <h5 class="fs-7 fw-bold text-primary text-uppercase letter-spacing-1 mb-3">
+                        <i class="fa-regular fa-id-card me-1 text-info"></i> Personal Information
+                    </h5>
+
+                    <div class="row g-3 mb-4">
+                        <!-- Full Name -->
+                        <div class="col-md-6">
+                            <label for="inputFullName" class="form-label">Full Name *</label>
+                            <input type="text" class="form-control-modern {% if errors.full_name %}is-invalid{% endif %}" 
+                                   id="inputFullName" name="full_name" 
+                                   placeholder="e.g. Alexander Wright" 
+                                   value="{{ form_data.full_name|default:'' }}" required>
+                            {% if errors.full_name %}
+                                <div class="invalid-feedback-custom">
+                                    <i class="fa-solid fa-circle-exclamation"></i> {{ errors.full_name }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Email Address -->
+                        <div class="col-md-6">
+                            <label for="inputEmail" class="form-label">Email Address *</label>
+                            <input type="email" class="form-control-modern {% if errors.email %}is-invalid{% endif %}" 
+                                   id="inputEmail" name="email" 
+                                   placeholder="e.g. alex.wright@employeehub.io" 
+                                   value="{{ form_data.email|default:'' }}" required>
+                            {% if errors.email %}
+                                <div class="invalid-feedback-custom">
+                                    <i class="fa-solid fa-circle-exclamation"></i> {{ errors.email }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Phone -->
+                        <div class="col-md-4">
+                            <label for="inputPhone" class="form-label">Phone Number *</label>
+                            <input type="text" class="form-control-modern {% if errors.phone %}is-invalid{% endif %}" 
+                                   id="inputPhone" name="phone" 
+                                   placeholder="+1 (555) 234-5678" 
+                                   value="{{ form_data.phone|default:'' }}" required>
+                            {% if errors.phone %}
+                                <div class="invalid-feedback-custom">
+                                    <i class="fa-solid fa-circle-exclamation"></i> {{ errors.phone }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Gender -->
+                        <div class="col-md-4">
+                            <label for="inputGender" class="form-label">Gender *</label>
+                            <select class="form-control-modern filter-select {% if errors.gender %}is-invalid{% endif %}" 
+                                    id="inputGender" name="gender" required>
+                                <option value="Male" {% if form_data.gender == "Male" %}selected{% endif %}>Male</option>
+                                <option value="Female" {% if form_data.gender == "Female" %}selected{% endif %}>Female</option>
+                                <option value="Other" {% if form_data.gender == "Other" %}selected{% endif %}>Other</option>
+                            </select>
+                            {% if errors.gender %}
+                                <div class="invalid-feedback-custom">
+                                    <i class="fa-solid fa-circle-exclamation"></i> {{ errors.gender }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Date of Birth -->
+                        <div class="col-md-4">
+                            <label for="inputDob" class="form-label">Date of Birth</label>
+                            <input type="date" class="form-control-modern" 
+                                   id="inputDob" name="dob" 
+                                   value="{{ form_data.dob|default:'' }}">
+                        </div>
+                    </div>
+
+                    <!-- Section: Job & Compensation -->
+                    <h5 class="fs-7 fw-bold text-primary text-uppercase letter-spacing-1 mb-3 pt-3 border-top border-secondary border-opacity-10">
+                        <i class="fa-solid fa-briefcase me-1 text-info"></i> Employment & Role Details
+                    </h5>
+
+                    <div class="row g-3 mb-4">
+                        <!-- Department -->
+                        <div class="col-md-6">
+                            <label for="inputDepartment" class="form-label">Department *</label>
+                            <select class="form-control-modern filter-select {% if errors.department %}is-invalid{% endif %}" 
+                                    id="inputDepartment" name="department" required>
+                                <option value="" disabled {% if not form_data.department %}selected{% endif %}>Select department...</option>
+                                {% for d in departments %}
+                                <option value="{{ d }}" {% if form_data.department == d %}selected{% endif %}>{{ d }}</option>
+                                {% endfor %}
+                            </select>
+                            {% if errors.department %}
+                                <div class="invalid-feedback-custom">
+                                    <i class="fa-solid fa-circle-exclamation"></i> {{ errors.department }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Designation -->
+                        <div class="col-md-6">
+                            <label for="inputDesignation" class="form-label">Designation / Role Title *</label>
+                            <input type="text" class="form-control-modern {% if errors.designation %}is-invalid{% endif %}" 
+                                   id="inputDesignation" name="designation" 
+                                   placeholder="e.g. Principal Cloud Architect" 
+                                   value="{{ form_data.designation|default:'' }}" required>
+                            {% if errors.designation %}
+                                <div class="invalid-feedback-custom">
+                                    <i class="fa-solid fa-circle-exclamation"></i> {{ errors.designation }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Salary -->
+                        <div class="col-md-4">
+                            <label for="inputSalary" class="form-label">Annual Salary (USD) *</label>
+                            <div class="position-relative">
+                                <input type="number" step="1000" min="0" class="form-control-modern {% if errors.salary %}is-invalid{% endif %}" 
+                                       id="inputSalary" name="salary" 
+                                       placeholder="e.g. 125000" 
+                                       value="{{ form_data.salary|default:'' }}" required>
+                            </div>
+                            {% if errors.salary %}
+                                <div class="invalid-feedback-custom">
+                                    <i class="fa-solid fa-circle-exclamation"></i> {{ errors.salary }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Joining Date -->
+                        <div class="col-md-4">
+                            <label for="inputJoiningDate" class="form-label">Joining Date *</label>
+                            <input type="date" class="form-control-modern {% if errors.joining_date %}is-invalid{% endif %}" 
+                                   id="inputJoiningDate" name="joining_date" 
+                                   value="{{ form_data.joining_date|default:'' }}" required>
+                            {% if errors.joining_date %}
+                                <div class="invalid-feedback-custom">
+                                    <i class="fa-solid fa-circle-exclamation"></i> {{ errors.joining_date }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Employment Status -->
+                        <div class="col-md-4">
+                            <label for="inputStatus" class="form-label">Employment Status *</label>
+                            <select class="form-control-modern filter-select" id="inputStatus" name="status" required>
+                                <option value="Active" {% if form_data.status == "Active" %}selected{% endif %}>Active</option>
+                                <option value="On Leave" {% if form_data.status == "On Leave" %}selected{% endif %}>On Leave</option>
+                                <option value="Inactive" {% if form_data.status == "Inactive" %}selected{% endif %}>Inactive</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Section: Location & Address -->
+                    <h5 class="fs-7 fw-bold text-primary text-uppercase letter-spacing-1 mb-3 pt-3 border-top border-secondary border-opacity-10">
+                        <i class="fa-solid fa-location-dot me-1 text-info"></i> Contact Address
+                    </h5>
+
+                    <div class="mb-4">
+                        <label for="inputAddress" class="form-label">Office / Residential Address</label>
+                        <textarea class="form-control-modern" id="inputAddress" name="address" rows="3" 
+                                  placeholder="e.g. 742 Innovation Way, Suite 400, San Francisco, CA">{{ form_data.address|default:'' }}</textarea>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="d-flex align-items-center justify-content-end gap-3 pt-3 border-top border-secondary border-opacity-10">
+                        <a href="{% url 'employee_list' %}" class="btn btn-secondary-glass">Cancel</a>
+                        <button type="submit" class="btn-primary-gradient px-4 py-2.5">
+                            <i class="fa-solid {% if is_edit %}fa-check{% else %}fa-user-plus{% endif %}"></i>
+                            <span>{% if is_edit %}Save Changes{% else %}Add Employee{% endif %}</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Interactive Real-time Live Preview Card -->
+    <div class="col-lg-4">
+        <div class="preview-card-sticky">
+            <div class="glass-card mb-3">
+                <div class="glass-card-header">
+                    <span class="fs-8 text-uppercase fw-bold text-muted d-flex align-items-center gap-1.5">
+                        <i class="fa-solid fa-sparkles text-warning"></i>
+                        <span>Live Profile Preview</span>
+                    </span>
+                    <span class="badge bg-primary bg-opacity-25 text-primary border border-primary border-opacity-25">Auto Updates</span>
+                </div>
+                <div class="glass-card-body text-center p-4">
+                    <!-- Dynamic Live Avatar -->
+                    <div class="avatar-circle lg mx-auto mb-3" id="previewAvatar" style="background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);">
+                        AW
+                    </div>
+
+                    <h4 class="fw-bold text-white mb-1" id="previewName">Alexander Wright</h4>
+                    <p class="text-info fs-8 fw-semibold mb-2" id="previewRole">Principal Cloud Architect</p>
+
+                    <div class="d-flex justify-content-center mb-3">
+                        <span class="status-badge active" id="previewStatus">
+                            <span class="status-dot"></span> Active
+                        </span>
+                    </div>
+
+                    <div class="p-3 rounded-3 bg-dark bg-opacity-40 border border-secondary border-opacity-25 text-start fs-8">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Department:</span>
+                            <span class="text-white fw-bold" id="previewDept">IT</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Email:</span>
+                            <span class="text-white text-truncate ms-2" id="previewEmail">alex.wright@employeehub.io</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted">Salary:</span>
+                            <span class="text-success fw-bold" id="previewSalary">$142,000</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Helpful Tips Card -->
+            <div class="glass-card p-3">
+                <div class="d-flex gap-2">
+                    <i class="fa-solid fa-lightbulb text-warning mt-1"></i>
+                    <div>
+                        <div class="fw-bold fs-8 text-white">In-Memory Zero Database</div>
+                        <p class="fs-9 text-muted m-0">
+                            Records are securely kept in Python memory during runtime. All CRUD actions operate immediately without SQLite or ORM overhead.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
